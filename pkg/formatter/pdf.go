@@ -44,7 +44,7 @@ func (f *PDFFormatter) Format(data models.ReportData) error {
 	if len(logoBytes) > 0 {
 		logoReader := bytes.NewReader(logoBytes)
 		pdf.RegisterImageOptionsReader("logo", gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, logoReader)
-		pdf.ImageOptions("logo", 160, yBillingHeader, 40, 0, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
+		pdf.ImageOptions("logo", 180, yBillingHeader, 20, 0, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
 	}
 
 	pdf.Ln(8)

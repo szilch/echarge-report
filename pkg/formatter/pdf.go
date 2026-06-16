@@ -5,6 +5,8 @@ import (
 	"echarge-report/pkg/models"
 	_ "embed"
 	"fmt"
+	"image"
+	_ "image/png"
 	"time"
 
 	"github.com/fatih/color"
@@ -41,19 +43,28 @@ func (f *PDFFormatter) Format(data models.ReportData) error {
 	yBillingHeader := pdf.GetY()
 	pdf.Cell(40, 8, tr("Abrechnungsdaten"))
 
+	col1Width := 70.0
+	col2Width := 60.0
+	rowHeight := 6.0
+
+	var logoHeight float64
 	if len(logoBytes) > 0 {
+		logoHeight = 5.0 * rowHeight
+		logoWidth := logoHeight
+
+		imgConfig, _, err := image.DecodeConfig(bytes.NewReader(logoBytes))
+		if err == nil && imgConfig.Height > 0 {
+			aspectRatio := float64(imgConfig.Width) / float64(imgConfig.Height)
+			logoWidth = logoHeight * aspectRatio
+		}
+
 		logoReader := bytes.NewReader(logoBytes)
 		pdf.RegisterImageOptionsReader("logo", gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, logoReader)
-		pdf.ImageOptions("logo", 180, yBillingHeader, 20, 0, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
+		pdf.ImageOptions("logo", 200.0-logoWidth, yBillingHeader, logoWidth, logoHeight, false, gofpdf.ImageOptions{ImageType: "PNG", ReadDpi: true}, 0, "")
 	}
 
 	pdf.Ln(8)
 	pdf.SetFont("Arial", "", 12)
-
-	// Kopfdaten tabellarisch linksbündig ausrichten
-	col1Width := 70.0
-	col2Width := 60.0
-	rowHeight := 6.0
 
 	if data.LicensePlate != "" {
 		pdf.Cell(col1Width, rowHeight, tr("Kfz-Kennzeichen:"))
@@ -79,6 +90,14 @@ func (f *PDFFormatter) Format(data models.ReportData) error {
 	pdf.Cell(col1Width, rowHeight, tr("Preis/kWh:"))
 	pdf.CellFormat(col2Width, rowHeight, tr(FormatKWhPrice(data.KwhPrice)), "", 0, "L", false, 0, "")
 	pdf.Ln(12)
+
+	// Ensure we are below the logo to prevent overlap with the table.
+	if logoHeight > 0 {
+		logoBottom := yBillingHeader + logoHeight
+		if pdf.GetY() < logoBottom {
+			pdf.SetY(logoBottom + 4.0)
+		}
+	}
 
 	pdf.SetFont("Arial", "B", 12)
 	pdf.CellFormat(40, 8, tr("Start"), "1", 0, "C", false, 0, "")

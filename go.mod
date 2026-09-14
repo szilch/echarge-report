@@ -1,6 +1,6 @@
 module echarge-report
 
-go 1.26
+go 1.26.0
 
 require (
 	github.com/fatih/color v1.19.0
@@ -10,7 +10,7 @@ require (
 	github.com/pdfcpu/pdfcpu v0.13.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	golang.org/x/text v0.38.0
+	golang.org/x/text v0.42.0
 )
 
 require (
